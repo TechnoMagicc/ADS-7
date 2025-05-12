@@ -14,7 +14,7 @@ Train::~Train() {
     }
 }
 void Train::addCar(bool light) {
-    Car* newWagon = new Car{light, nullptr, nullptr}
+    Car* newWagon = new Car{light, nullptr, nullptr};
     if (first == nullptr) {
         first = newWagon;
         first->next = first;
