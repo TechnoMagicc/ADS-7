@@ -1,74 +1,57 @@
 // Copyright 2021 NNTU-CS
 #include "train.h"
-class Train {
-  private:
-    struct Car {
-        bool light;
-        Car* next;
-        Car* prev;
-    };
-    
-    int countOp;
-    Car* first; 
-
-  public:
-    Train() : countOp(0), first(nullptr) {}
-
-    void addCar(bool light) {
-        Car* newCar = new Car{light, nullptr, nullptr};
-        if (!first) {
-            first = newCar;
-            first->next = first;
-            first->prev = first;
-        } else {
-            Car* last = first->prev;
-            last->next = newCar;
-            newCar->prev = last;
-            newCar->next = first;
-            first->prev = newCar;
-        }
+Train::Train() : countOp(0), first(nullptr) {}
+Train::~Train() {
+    if (first != nullptr) {
+        Car* current = first;
+        do {
+            Car* toDelete = current;
+            current = current->next;
+            delete toDelete;
+        } while (current != first);
     }
+}
+void Train::addCar(bool lit) {
+    Car* newWagon = new Car(lit);
+    if (first == nullptr) {
+        first = newWagon;
+        first->next = first;
+        first->prev = first;
+    } else {
+        Car* tail = first->prev;
+        tail->next = newWagon;
+        newWagon->prev = tail;
+        newWagon->next = first;
+        first->prev = newWagon;
+    }
+}
+int Train::getLength() {
+    if (first == nullptr) return 0;
 
-    int getLength() {
-        if (!first) return 0;
-        int length = 1;
-        Car* current = first->next;
-        countOp = 0;
-        while (current != first) {
-            length++;
+    first->light = true;
+    Car* current = first->next;
+    int length = 1;
+    countOp++;
+
+    while (true) {
+        while (!current->light) {
             current = current->next;
             countOp++;
+            length++;
         }
-        return length;
-    }
 
-    int getOpCount() {
-        return countOp;
-    }
-
-    ~Train() {
-        if (first) {
-            Car* current = first;
-            Car* next;
-            do {
-                next = current->next;
-                delete current;
-                current = next;
-            } while (current != first);
+        current->light = false;
+        for (int i = 0; i < length; ++i) {
+            current = current->prev;
+            countOp++;
         }
+        if (!current->light) {
+            return length;
+        }
+        current = current->next;
     }
-};
+}
 
-void runExperiment(int n, std::vector<int>& operations, std::vector<double>& times, int lightState) {
-    Train train;
-    for (int i = 0; i < n; ++i) {
-        train.addCar(lightState == 0 ? false : true);
-    }
-    
-    auto start = std::chrono::high_resolution_clock::now();
-    int ops = train.getLength();
-    auto end = std::chrono::high_resolution_clock::now();
-    
-    operations.push_back(train.getOpCount());
-    times.push_back(std::chrono::duration<double, std::milli>(end - start).count());
+int Train::getOpCount() {
+    return countOp;
 }
